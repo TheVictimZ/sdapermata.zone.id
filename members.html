@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id" x-data="appData" :class="{ 'dark': localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Selamat datang di komunitas GMAHK SDA Permata terpadu via ZONE.ID. Pusat pelayanan dan informasi jemaat online." :content="settings.site_description || 'Selamat datang di komunitas GMAHK SDA Permata terpadu via ZONE.ID. Pusat pelayanan dan informasi jemaat online.'">
+    <meta name="keywords" content="Rohani, SDA Permata, Kepulauan Riau, Pelayanan Jemaat, Permata Punggur, Gereja Advent">
+    <title x-text="settings.site_title || 'Gereja Advent SDA Permata - Portal ZONE.ID'">Gereja Advent SDA Permata - Portal ZONE.ID</title>
+    
+    <link rel="icon" type="image/png" id="favicon" href=""> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], display: ['Outfit', 'sans-serif'], },
+                    colors: { brand: { base: '#030712', surface: '#0f172a', accent: '#7c3aed', accent2: '#2563eb', muted: '#6b7280', light: '#f9fafb' } }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('memberSearch', () => ({
+                search: '',
+                selectedTag: '',
+                statusFilter: 'all', 
+                modalOpen: false,
+                selectedMember: null,
+                members: [],
+                allTags: [],
+                
+                async init() {
+                    const [membersData, assignedTagsData, tagsData] = await Promise.all([
+                        fetchAPI('members'),
+                        fetchAPI('assigned_tags'),
+                        fetchAPI('tags')
+                    ]);
+                    
+                    if (tagsData) {
+                        this.allTags = tagsData;
+                    }
+
+                    if (membersData && assignedTagsData) {
+                        const tagsByMember = {};
+                        assignedTagsData.forEach(t => {
+                            if (!tagsByMember[t.member_id]) tagsByMember[t.member_id] = [];
+                            tagsByMember[t.member_id].push({ name: t.tag_name, year: t.active_year });
+                        });
+
+                        this.members = membersData.map(m => ({
+                            id: m.id,
+                            full_name: m.full_name,
+                            role_name: m.role_name,
+                            image_path: m.image_path,
+                            birth_date_fmt: new Date(m.birth_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+                            tags: tagsByMember[m.id] || []
+                        }));
+                    }
+                },
+                
+                get filteredMembers() {
+                    let result = this.members;
+                    const currentYear = new Date().getFullYear();
+
+                    if (this.selectedTag !== '') {
+                        result = result.filter(member => {
+                            const tag = member.tags.find(t => t.name === this.selectedTag);
+                            if (!tag) return false;
+                            if (this.statusFilter === 'active') return tag.year == currentYear;
+                            else if (this.statusFilter === 'inactive') return tag.year != currentYear;
+                            return true;
+                        });
+                    } else {
+                        if (this.statusFilter === 'active') {
+                             result = result.filter(member => member.tags.some(t => t.year == currentYear));
+                        } else if (this.statusFilter === 'inactive') {
+                             result = result.filter(member => !member.tags.some(t => t.year == currentYear) && member.tags.length > 0);
+                        }
+                    }
+
+                    if (this.search !== '') {
+                        const lowerSearch = this.search.toLowerCase();
+                        result = result.filter(member => member.full_name.toLowerCase().includes(lowerSearch));
+                    }
+                    
+                    return result;
+                },
+                
+                highlightName(name) {
+                    if (this.search === '') return name;
+                    const regex = new RegExp(`(${this.search})`, 'gi');
+                    return name.replace(regex, '<span class="text-violet-500">$1</span>');
+                },
+                
+                openModal(member) {
+                    this.selectedMember = member;
+                    this.modalOpen = true;
+                    document.body.style.overflow = 'hidden'; 
+                },
+                
+                closeModal() {
+                    this.modalOpen = false;
+                    setTimeout(() => { this.selectedMember = null; }, 300);
+                    document.body.style.overflow = ''; 
+                }
+            }));
+        });
+    </script>
+
+    <link rel="canonical" href="https://sdapermata.zone.id/members.html">
+    <meta property="og:url" content="https://sdapermata.zone.id/">
+    <meta property="og:title" content="Pusat Pelayanan Advent Jemaat Permata - Kepulauan Riau">
+</head>
+<body x-data="{ darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) }" 
+      :class="{ 'dark': darkMode }" 
+      x-init="$watch('darkMode', val => localStorage.setItem('theme', val ? 'dark' : 'light'))"
+      class="bg-slate-100 text-slate-950 font-medium dark:bg-brand-base dark:text-brand-light font-sans antialiased flex flex-col min-h-screen selection:bg-brand-accent selection:text-white dark:selection:text-brand-base overflow-x-hidden transition-colors duration-500">
+
+    <div x-show="darkMode" class="fixed inset-0 z-0 pointer-events-none overflow-hidden block transition-opacity duration-500">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] animate-blob" style="animation-delay: 2s"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-fuchsia-600/10 rounded-full mix-blend-screen filter blur-[120px] animate-blob" style="animation-delay: 4s"></div>
+    </div>
+
+    <!-- Modern Floating Navbar -->
+    <nav class="fixed top-0 w-full z-50 px-4 py-4 transition-all duration-500" x-data="{ open: false, scrolled: false }" @scroll.window="scrolled = (window.pageYOffset > 20)">
+        <div class="max-w-7xl mx-auto transition-all duration-500" :class="scrolled ? 'rounded-full bg-slate-100/90 dark:bg-brand-surface/80 backdrop-blur-xl border border-slate-300/50 dark:border-white/10 shadow-lg py-3 px-6' : 'rounded-2xl bg-transparent py-4 px-2'">
+            <div class="flex justify-between items-center gap-2 md:gap-4">
+                <a href="index.html" class="flex items-center gap-2 md:gap-4 group z-50 min-w-0 flex-1 max-w-[80%] lg:max-w-max">
+                    <template x-if="getLogoUrl()"><div class="h-10 shrink-0 overflow-hidden group-hover:scale-105 transition-transform duration-300"><img :src="getLogoUrl()" alt="Logo" class="w-auto h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"></div></template>
+                    <template x-if="!getLogoUrl()"><div class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-accent to-brand-accent2 flex items-center justify-center shadow-md shadow-brand-accent/20 group-hover:-rotate-6 transition-transform duration-300"><i class="fas fa-leaf text-white text-lg"></i></div></template>
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-display font-bold text-lg md:text-xl text-gray-900 dark:text-white tracking-wide group-hover:text-brand-accent transition-colors duration-300 leading-tight truncate" x-text="settings.site_title || 'Portal Utama'"></span>
+                        <span class="text-[0.65rem] text-brand-muted uppercase tracking-[0.2em] font-medium mt-0.5 truncate">Community Platform</span>
+                    </div>
+                </a>
+                <div class="hidden lg:flex items-center gap-8">
+                    <div class="flex items-center gap-6 bg-white/50 dark:bg-brand-base/40 px-6 py-2.5 rounded-full border border-gray-200 dark:border-white/5 backdrop-blur-md shadow-sm dark:shadow-none">
+                        <a href="index.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Beranda</a>
+                        <a href="about.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Profil</a>
+                        <a href="members.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 text-brand-accent dark:text-white font-bold">Direktori</a>
+                        <a href="history.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Jejak</a>
+                        <div class="relative" x-data="{ dropdown: false }">
+                            <button @mouseenter="dropdown = true" @mouseleave="dropdown = false" class="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white transition-colors">
+                                Layanan <i class="fas fa-angle-down text-xs transition-transform duration-300" :class="{ 'rotate-180 text-brand-accent': dropdown }"></i>
+                            </button>
+                            <div x-show="dropdown" @mouseenter="dropdown = true" @mouseleave="dropdown = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-2 scale-95" class="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-brand-surface/95 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-white/10 shadow-lg dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden">
+                                <div class="p-2 flex flex-col gap-1">
+                                    <a href="jemaat.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors"><div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform"><i class="fas fa-users"></i></div><div><div class="text-sm font-bold text-gray-900 dark:text-white">Data Komunitas</div><div class="text-xs text-slate-500 dark:text-slate-400">Statistik anggota</div></div></a>
+                                    <a href="articles.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors"><div class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform"><i class="fas fa-book-open"></i></div><div><div class="text-sm font-bold text-gray-900 dark:text-white">Jurnal & Literatur</div><div class="text-xs text-slate-500 dark:text-slate-400">Bacaan inspiratif</div></div></a>
+                                    <a href="monitor.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors"><div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform"><i class="fas fa-satellite-dish"></i></div><div><div class="text-sm font-bold text-gray-900 dark:text-white">Status Sistem</div><div class="text-xs text-slate-500 dark:text-slate-400">Monitoring real-time</div></div></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button @click="darkMode = !darkMode" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-white/20 transition-all"><i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i></button>
+                        <a href="contact.html" class="px-6 py-2.5 bg-brand-accent text-white text-sm font-bold font-display rounded-full hover:bg-brand-accent2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">Koneksi</a>
+                    </div>
+                </div>
+                <div class="lg:hidden flex items-center gap-3 shrink-0">
+                    <button @click="open = !open" class="relative z-50 w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/10 active:scale-95 focus:outline-none transition-all duration-300"><i class="fas text-lg md:text-xl" :class="open ? 'fa-times text-brand-accent' : 'fa-bars text-gray-800 dark:text-white'" class="transition-colors"></i></button>
+                </div>
+            </div>
+        </div>
+        <div x-show="open" style="display: none;" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 backdrop-blur-none" x-transition:enter-end="opacity-100 backdrop-blur-2xl" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100 backdrop-blur-2xl" x-transition:leave-end="opacity-0 backdrop-blur-none" class="fixed inset-0 z-[60] bg-white/95 dark:bg-brand-base/95 flex flex-col justify-center px-8 text-left pt-16 pb-24 overflow-y-auto">
+             <button @click="open = false" class="fixed top-6 right-6 w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gray-100/80 dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 active:scale-95 transition-all duration-300 shadow-sm z-[70]"><i class="fas fa-times text-lg md:text-xl text-brand-accent"></i></button>
+             <div class="flex flex-col gap-5 my-auto" x-show="open" x-transition:enter="transition ease-out duration-500 delay-100" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
+                 <a href="index.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Beranda</a>
+                 <a href="about.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Profil</a>
+                 <a href="members.html" class="text-2xl font-display font-bold text-brand-accent transition-colors py-2">Direktori</a>
+                 <a href="history.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Jejak Kami</a>
+                 <div x-data="{ sub: false }" class="py-2"><button @click="sub = !sub" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors flex items-center gap-4 w-full text-left focus:outline-none">Layanan <i class="fas fa-plus text-sm transition-transform" :class="{ 'rotate-45 text-brand-accent': sub }"></i></button>
+                     <div x-show="sub" x-collapse class="pl-4 pt-4 flex flex-col gap-3 border-l-2 border-slate-200 dark:border-white/10 mt-2">
+                         <a href="jemaat.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Data Komunitas</a>
+                         <a href="articles.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Jurnal & Literatur</a>
+                         <a href="monitor.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Status Sistem</a>
+                     </div>
+                 </div>
+                 <div class="mt-6 pt-6 border-t border-slate-200 dark:border-white/10"><a href="contact.html" class="block w-full py-4 bg-brand-accent text-white text-center font-bold font-display rounded-2xl text-lg shadow-md hover:bg-brand-accent2 transition-colors">Bangun Koneksi Sekarang</a></div>
+             </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow relative z-10" x-show="isLoaded" x-data="memberSearch()">
+        <!-- Advanced Header Banner (Small) -->
+        <div class="relative pt-32 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-slate-50 dark:bg-brand-base transition-colors duration-500">
+            <div class="absolute inset-x-0 -top-40 h-[400px] w-full bg-violet-500/10 dark:bg-violet-500/5 rounded-[100%] blur-[100px] pointer-events-none z-0"></div>
+            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center z-0"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+                <div class="inline-block px-4 py-1.5 border border-violet-500/30 rounded-full bg-white/20 dark:bg-violet-500/10 backdrop-blur-md mb-6 shadow-sm">
+                     <span class="text-xs text-violet-400 font-bold uppercase tracking-widest font-display">Struktur Jejaring</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold font-display text-slate-900 dark:text-white text-center mb-4 tracking-tight leading-tight drop-shadow-sm dark:drop-shadow-lg transition-colors duration-500">
+                    Direktori <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">Komunitas</span>
+                </h1>
+                <p class="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-light max-w-2xl mx-auto text-center leading-relaxed transition-colors duration-500">
+                    Menelusuri profil entitas anggota yang menjadi pilar pergerakan terintegrasi ini.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-brand-base min-h-screen py-20 relative z-10 transition-colors duration-500">
+            <!-- Ambient glowing for search -->
+            <div class="absolute top-0 inset-x-0 h-96 bg-violet-500/10 dark:bg-violet-500/5 rounded-[100%] blur-[100px] pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-6 relative z-20">
+                
+                <!-- Search & Filters Container -->
+                <div class="max-w-3xl mx-auto mb-20 bg-white/80 dark:bg-brand-surface/50 backdrop-blur-xl rounded-3xl p-8 border border-slate-200 dark:border-white/5 shadow-md dark:shadow-xl transition-colors duration-500">
+                    
+                    <div class="relative group mb-6">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-violet-400 to-fuchsia-500 rounded-full blur opacity-15 dark:opacity-25 group-hover:opacity-30 dark:group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                        <div class="relative flex items-center">
+                            <input type="text" x-model="search" placeholder="Temukan identitas..." class="block w-full py-5 pl-14 pr-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-full bg-slate-50 dark:bg-brand-base focus:ring-1 focus:ring-violet-500 focus:border-violet-500 transition shadow-sm dark:shadow-md font-display text-lg placeholder-slate-400 dark:placeholder-slate-500 transition-colors duration-500">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-6 pointer-events-none">
+                                <i class="fas fa-search text-violet-500"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div class="flex flex-col md:flex-row justify-between gap-4">
+                        <div class="relative w-full">
+                            <select x-model="selectedTag" class="block w-full px-6 py-4 pr-12 text-sm bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-2xl shadow-inner focus:outline-none focus:ring-1 focus:ring-violet-400 text-slate-700 dark:text-slate-300 font-display appearance-none transition-colors hover:bg-slate-200 dark:hover:bg-black/50 cursor-pointer">
+                                <option value="" class="bg-white dark:bg-brand-surface text-slate-500 dark:text-slate-400">Semua Klasifikasi</option>
+                                <template x-for="tag in allTags" :key="tag.id">
+                                    <option :value="tag.name" class="bg-white dark:bg-brand-surface text-slate-900 dark:text-white" x-text="tag.name"></option>
+                                </template>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <div class="relative w-full">
+                            <select x-model="statusFilter" class="block w-full px-6 py-4 pr-12 text-sm bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-2xl shadow-inner focus:outline-none focus:ring-1 focus:ring-violet-400 text-slate-700 dark:text-slate-300 font-display appearance-none transition-colors hover:bg-slate-200 dark:hover:bg-black/50 cursor-pointer">
+                                <option value="all" class="bg-white dark:bg-brand-surface text-slate-500 dark:text-slate-400">Semua Status</option>
+                                <option value="active" class="bg-white dark:bg-brand-surface text-slate-900 dark:text-white" x-text="'Aktif (' + new Date().getFullYear() + ')'"></option>
+                                <option value="inactive" class="bg-white dark:bg-brand-surface text-slate-900 dark:text-white">Diarsipkan (Histori)</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-slate-500 dark:text-slate-400">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-6 h-6">
+                        <p x-show="search.length > 0 || selectedTag !== '' || statusFilter !== 'all'" x-transition 
+                           class="text-xs text-brand-accent dark:text-violet-400 uppercase tracking-[0.2em] font-bold">
+                            Sinkronisasi berhasil: <span x-text="filteredMembers.length" class="text-violet-500 ml-1 text-sm font-display blur-none drop-shadow-sm"></span> entitas
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Members Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
+                    <template x-for="member in filteredMembers" :key="member.id">
+                        <div @click="openModal(member)" class="group bg-white/80 dark:bg-brand-surface/50 border border-slate-200 dark:border-white/5 backdrop-blur-xl rounded-3xl overflow-hidden hover:border-violet-500/40 dark:hover:border-violet-500/40 shadow-md dark:shadow-xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col relative z-20">
+                            
+                            <div class="absolute inset-0 bg-gradient-to-b from-slate-100/50 dark:from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 pointer-events-none"></div>
+
+                            <!-- Image Container -->
+                            <div class="h-32 md:h-64 overflow-hidden relative bg-slate-100 dark:bg-black/40 z-10 w-full mb-0 p-3 md:p-5 pb-0 transition-colors duration-500">
+                                <div class="w-full h-full rounded-t-2xl md:rounded-t-3xl overflow-hidden relative group-hover:shadow-[0_10px_20px_rgba(0,0,0,0.1)] transition-shadow duration-500">
+                                    <template x-if="member.image_path">
+                                        <img :src="member.image_path.startsWith('http') ? member.image_path : '/' + member.image_path" :alt="member.full_name" class="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 filter brightness-95 dark:brightness-90 group-hover:brightness-105 dark:group-hover:brightness-110">
+                                    </template>
+                                    <template x-if="!member.image_path">
+                                        <div class="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-400 bg-white dark:bg-brand-base shadow-inner transition-colors duration-500">
+                                            <i class="fas fa-user-astronaut text-4xl md:text-6xl opacity-50"></i>
+                                        </div>
+                                    </template>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-white/90 dark:from-brand-surface/90 to-transparent pointer-events-none transition-colors duration-500"></div>
+                                </div>
+                            </div>
+
+                            <!-- Details -->
+                            <div class="p-5 md:p-8 pt-0 md:pt-4 text-center relative z-10 flex-grow flex flex-col justify-end">
+                                <span class="inline-block mx-auto px-4 py-1.5 bg-violet-500/10 border border-violet-500/20 text-brand-accent dark:text-violet-400 text-[10px] md:text-xs font-bold rounded-xl md:rounded-full uppercase tracking-widest mb-4 truncate w-full shadow-sm" x-text="member.role_name"></span>
+                                
+                                <h3 class="text-[13px] md:text-xl font-bold font-display text-slate-900 dark:text-white mb-2 group-hover:text-brand-accent dark:group-hover:text-violet-400 transition-colors leading-tight line-clamp-2 md:line-clamp-none h-8 md:h-auto" x-html="highlightName(member.full_name)"></h3>
+                                
+                                <!-- Tags -->
+                                <div class="hidden md:flex flex-wrap justify-center gap-2 mt-4" x-show="member.tags && member.tags.length > 0">
+                                    <template x-for="(tag, index) in member.tags">
+                                        <span x-show="index < 2" class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 transition-colors duration-500">
+                                            <span x-text="tag.name"></span>
+                                            <span class="ml-2 text-violet-500 dark:text-violet-400 border-l border-slate-200 dark:border-white/10 pl-2 font-mono text-[10px]" x-text="tag.year"></span>
+                                        </span>
+                                    </template>
+                                   <span x-show="member.tags.length > 2" class="text-xs text-slate-500 font-bold ml-1 self-center w-6 h-6 flex items-center justify-center bg-slate-100 dark:bg-white/5 rounded-full shadow-inner transition-colors duration-500">+<span x-text="member.tags.length - 2"></span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- No Results -->
+                    <div x-show="filteredMembers.length === 0" class="col-span-full py-32 text-center transition-colors duration-500" style="display: none;">
+                        <div class="inline-flex items-center justify-center w-24 h-24 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-full text-4xl text-slate-500 dark:text-slate-400 mb-6 backdrop-blur-md shadow-sm transition-colors duration-500">
+                            <i class="fas fa-satellite"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white font-display mb-3 tracking-wide transition-colors duration-500">Radar Tidak Menemukan Entitas</h3>
+                        <p class="text-slate-600 dark:text-slate-400 font-light text-lg transition-colors duration-500">Sesuaikan parameter filter pencarian Anda.</p>
+                    </div>
+                </div>
+
+                <!-- Detail Modal Redesign -->
+                <div x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" x-cloak style="display: none;">
+                    <div class="absolute inset-0 bg-slate-900/60 dark:bg-brand-base/90 backdrop-blur-md transition-colors duration-500" x-transition.opacity duration.500ms @click="closeModal()"></div>
+                    
+                    <div class="relative bg-white/95 dark:bg-brand-surface/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl dark:shadow-[0_0_60px_rgba(0,0,0,0.5)] max-w-xl w-full overflow-hidden transform transition-all p-2 transition-colors duration-500" 
+                         @click.away="closeModal()"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 translate-y-4">
+                        
+                        <div class="absolute top-6 right-6 z-20">
+                            <button @click="closeModal()" class="w-10 h-10 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 focus:outline-none transition-colors border border-slate-200 dark:border-white/10">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="bg-slate-50/50 dark:bg-black/20 rounded-3xl relative overflow-hidden border border-slate-200 dark:border-white/5 transition-colors duration-500">
+                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 dark:opacity-10"></div>
+                            <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-64 h-64 bg-violet-500/10 dark:bg-violet-500/20 rounded-full blur-[80px]"></div>
+
+                            <div class="pt-16 pb-8 px-8 text-center relative z-10">
+                                <div class="w-32 h-32 mx-auto rounded-3xl border border-violet-500/20 dark:border-violet-500/30 p-2 relative bg-white dark:bg-brand-base mb-6 shadow-md transition-colors duration-500">
+                                    <div class="w-full h-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-brand-surface flex items-center justify-center transition-colors duration-500">
+                                         <template x-if="selectedMember && selectedMember.image_path">
+                                            <img :src="selectedMember.image_path.startsWith('http') ? selectedMember.image_path : '/' + selectedMember.image_path" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="selectedMember && !selectedMember.image_path">
+                                            <i class="fas fa-user-astronaut text-4xl text-slate-500 dark:text-slate-400"></i>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <span class="inline-block px-3 py-1 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white bg-violet-500 rounded-xl shadow-sm" x-text="selectedMember ? selectedMember.role_name : ''"></span>
+                                
+                                <h3 class="text-3xl font-bold font-display text-slate-900 dark:text-white mb-2 leading-tight transition-colors duration-500" x-text="selectedMember ? selectedMember.full_name : ''"></h3>
+                                <p class="text-slate-600 dark:text-slate-400 text-sm font-light mb-8 transition-colors duration-500"><i class="fas fa-calendar-day text-violet-500 mr-2"></i> Lahir: <span x-text="selectedMember ? selectedMember.birth_date_fmt : ''"></span></p>
+
+                                <div class="border-t border-slate-200 dark:border-white/10 pt-8 pb-4 transition-colors duration-500">
+                                    <h4 class="text-xs font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest mb-6 transition-colors duration-500">Klasifikasi Aktivitas Status</h4>
+                                    
+                                    <template x-if="selectedMember && selectedMember.tags && selectedMember.tags.length > 0">
+                                        <div class="flex flex-wrap justify-center gap-3">
+                                            <template x-for="tag in selectedMember.tags">
+                                                <div class="flex items-center bg-white dark:bg-black/40 rounded-2xl p-3 border border-slate-200 dark:border-white/5 relative overflow-hidden group/modal-tag shadow-sm transition-colors duration-500">
+                                                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-violet-500"></div>
+                                                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-400 mr-3 transition-colors duration-500">
+                                                        <i class="fas fa-shield-alt text-xs"></i>
+                                                    </div>
+                                                    <div class="text-left pr-2">
+                                                        <p class="text-[13px] font-bold font-display text-slate-900 dark:text-gray-200 transition-colors duration-500" x-text="tag.name"></p>
+                                                        <div class="flex items-center gap-2 mt-1">
+                                                             <p class="text-[11px] text-violet-500 dark:text-violet-400 font-mono tracking-widest transition-colors duration-500" x-text="tag.year"></p>
+                                                             <span x-show="tag.year == new Date().getFullYear()" class="px-2 py-0.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 text-[9px] uppercase font-bold rounded-lg tracking-wider transition-colors duration-500">ON</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    
+                                    <template x-if="!selectedMember || !selectedMember.tags || selectedMember.tags.length === 0">
+                                        <div class="py-6 px-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 border-dashed transition-colors duration-500">
+                                            <p class="text-slate-500 dark:text-slate-500 text-sm font-light transition-colors duration-500"><i class="fas fa-info-circle mr-2"></i>Memori arsip tidak ditemukan.</p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="relative border-t border-slate-200 dark:border-white/5 bg-slate-200/50 dark:bg-brand-surface/40 overflow-hidden transition-colors duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)]" x-show="isLoaded">
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-violet-600/10 dark:bg-violet-600/5 blur-[100px] rounded-full"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 dark:bg-blue-600/5 blur-[80px] rounded-full"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 py-16 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 border-b border-slate-200 dark:border-white/5 pb-12">
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="flex items-center gap-4">
+                        <template x-if="getLogoUrl()"><div class="h-12 overflow-hidden shadow-lg shadow-sky-500/10"><img :src="getLogoUrl()" alt="Logo" class="w-auto h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"></div></template>
+                        <template x-if="!getLogoUrl()"><div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-accent to-brand-accent2 flex items-center justify-center shadow-lg shadow-brand-accent/20"><i class="fas fa-globe text-white text-xl"></i></div></template>
+                        <div class="flex flex-col">
+                            <h3 class="font-display text-slate-900 dark:text-white text-2xl font-bold tracking-tight" x-text="settings.site_title || 'Portal Utama'"></h3>
+                            <span class="text-xs text-sky-600 dark:text-sky-400 tracking-[0.2em] font-medium uppercase">Community Network</span>
+                        </div>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400 pe-4" x-text="settings.site_description || 'Membangun sinergi dan keharmonisan bersama komunitas kami dalam era digital modern, terikat dalam satu visi kebersamaan.'"></p>
+                    <div class="flex space-x-3 pt-2">
+                        <template x-if="settings.social_facebook"><a :href="settings.social_facebook" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#1877F2] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"><i class="fab fa-facebook-f"></i></a></template>
+                        <template x-if="settings.social_youtube"><a :href="settings.social_youtube" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#FF0000] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"><i class="fab fa-youtube"></i></a></template>
+                        <template x-if="settings.social_instagram"><a :href="settings.social_instagram" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#E4405F] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"><i class="fab fa-instagram"></i></a></template>
+                        <template x-if="settings.social_whatsapp"><a :href="settings.social_whatsapp" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#25D366] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"><i class="fab fa-whatsapp"></i></a></template>
+                        <template x-if="settings.social_github"><a :href="settings.social_github" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#333] dark:hover:text-[#fff] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md"><i class="fab fa-github"></i></a></template>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 lg:col-start-6">
+                    <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2"><i class="fas fa-compass text-sky-600 dark:text-sky-400 text-sm"></i> Eksplorasi</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="about.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Tentang Ekosistem</a></li>
+                        <li><a href="jemaat.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Jadwal & Agenda</a></li>
+                        <li><a href="members.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Direktori Member</a></li>
+                    </ul>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2"><i class="fas fa-layer-group text-sky-600 dark:text-sky-400 text-sm"></i> Fasilitas Publik</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="articles.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Publikasi Konten</a></li>
+                        <li><a href="history.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Riwayat Evolusi</a></li>
+                        <li><a href="https://advent.qzz.io/admin/login" target="_blank" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 group py-1"><i class="fas fa-shield-alt text-[10px] opacity-50 group-hover:text-brand-accent transition-colors"></i> Portal Akses</a></li>
+                    </ul>
+                </div>
+
+                <div class="lg:col-span-3 lg:col-start-10">
+                     <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2"><i class="fas fa-map-pin text-sky-600 dark:text-sky-400 text-sm"></i> Pusat Informasi</h4>
+                     <div class="bg-white dark:bg-brand-surface border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group transition-colors">
+                         <div class="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 dark:bg-sky-500/5 rounded-bl-[100px] transition-all duration-500 group-hover:scale-150 group-hover:bg-sky-500/20 dark:group-hover:bg-sky-500/10"></div>
+                         <div class="flex gap-4 relative z-10" x-init="fetchPage('location')">
+                             <div class="text-sky-600 dark:text-sky-400 mt-1"><i class="fas fa-building"></i></div>
+                             <div class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium" x-html="pages.location ? pages.location.content : 'Pusat Koordinasi Wilayah, Indonesia.'"></div>
+                         </div>
+                         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 relative z-10">
+                             <a href="contact.html" class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest hover:text-brand-accent dark:hover:text-white transition-colors flex items-center gap-2 group/link">
+                                 Jalin Komunikasi <i class="fas fa-arrow-right transform group-hover/link:translate-x-2 transition-transform"></i>
+                             </a>
+                         </div>
+                     </div>
+                </div>
+            </div>
+            
+            <div class="pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 dark:text-brand-muted font-medium gap-4">
+                <p class="text-center md:text-left">&copy; <span x-text="new Date().getFullYear()"></span> <span class="text-gray-800 dark:text-gray-300" x-text="settings.site_title || 'Platform Terpadu'"></span>. Semua hak cipta dilindungi.</p>
+                <div class="flex flex-wrap justify-center space-x-4 md:space-x-6 mt-2 md:mt-0">
+                    <a href="privacy.html" class="hover:text-brand-accent transition-colors p-1">Kebijakan Privasi</a>
+                    <a href="terms.html" class="hover:text-brand-accent transition-colors p-1">Syarat Penggunaan</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+
+
+
+

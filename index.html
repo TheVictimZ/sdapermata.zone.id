@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="id" x-data="appData" :class="{ 'dark': localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Selamat datang di komunitas GMAHK SDA Permata terpadu via ZONE.ID. Pusat pelayanan dan informasi jemaat online." :content="settings.site_description || 'Selamat datang di komunitas GMAHK SDA Permata terpadu via ZONE.ID. Pusat pelayanan dan informasi jemaat online.'">
+    <meta name="keywords" content="Rohani, SDA Permata, Kepulauan Riau, Pelayanan Jemaat, Permata Punggur, Gereja Advent">
+    <title x-text="settings.site_title || 'Gereja Advent SDA Permata - Portal ZONE.ID'">Gereja Advent SDA Permata - Portal ZONE.ID</title>
+    
+    <!-- Dynamic Favicon -->
+    <link rel="icon" type="image/png" id="favicon" href=""> 
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            base: '#030712',     // Midnight for dark mode bg
+                            surface: '#0f172a',  // Slate 900 for cards
+                            accent: '#7c3aed',   // Violet 600
+                            accent2: '#2563eb',  // Sapphire 600
+                            muted: '#6b7280',    // Gray 500
+                            light: '#f9fafb'     // Gray 50
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'float': 'float 8s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(20px, -30px) scale(1.05)' },
+                            '66%': { transform: 'translate(-15px, 15px) scale(0.95)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="assets/js/api.js"></script>
+
+    <link rel="canonical" href="https://sdapermata.zone.id/">
+    <meta property="og:url" content="https://sdapermata.zone.id/">
+    <meta property="og:title" content="Pusat Pelayanan Advent Jemaat Permata - Kepulauan Riau">
+</head>
+<body x-data="{ darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) }" 
+      :class="{ 'dark': darkMode }" 
+      x-init="$watch('darkMode', val => localStorage.setItem('theme', val ? 'dark' : 'light'))"
+      class="bg-slate-100 text-slate-950 font-medium dark:bg-brand-base dark:text-brand-light font-sans antialiased flex flex-col min-h-screen selection:bg-brand-accent selection:text-white dark:selection:text-brand-base overflow-x-hidden transition-colors duration-500">
+
+    <!-- Ambient Background Effects (Dark Mode Only) -->
+    <div x-show="darkMode" class="fixed inset-0 z-0 pointer-events-none overflow-hidden block transition-opacity duration-500">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[80px] animate-blob" style="animation-delay: 2s"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[50%] h-[50%] bg-fuchsia-600/10 rounded-full mix-blend-screen filter blur-[120px] animate-blob" style="animation-delay: 4s"></div>
+    </div>
+
+    <!-- Modern Floating Navbar -->
+    <nav class="fixed top-0 w-full z-50 px-4 py-4 transition-all duration-500" 
+         x-data="{ open: false, scrolled: false }" 
+         @scroll.window="scrolled = (window.pageYOffset > 20)">
+        
+        <div class="max-w-7xl mx-auto transition-all duration-500"
+             :class="scrolled ? 'rounded-full bg-slate-100/90 dark:bg-brand-surface/80 backdrop-blur-xl border border-slate-300/50 dark:border-white/10 shadow-lg py-3 px-6' : 'rounded-2xl bg-transparent py-4 px-2'">
+            
+            <div class="flex justify-between items-center gap-2 md:gap-4">
+                <a href="index.html" class="flex items-center gap-2 md:gap-4 group z-50 min-w-0 flex-1 max-w-[80%] lg:max-w-max">
+                    <template x-if="getLogoUrl()">
+                        <div class="h-10 shrink-0 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img :src="getLogoUrl()" alt="Logo" class="w-auto h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                        </div>
+                    </template>
+                    <template x-if="!getLogoUrl()">
+                        <div class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand-accent to-brand-accent2 flex items-center justify-center shadow-md shadow-brand-accent/20 group-hover:-rotate-6 transition-transform duration-300">
+                            <i class="fas fa-leaf text-white text-lg"></i>
+                        </div>
+                    </template>
+                    
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-display font-bold text-lg md:text-xl text-gray-900 dark:text-white tracking-wide group-hover:text-brand-accent transition-colors duration-300 leading-tight truncate" x-text="settings.site_title || 'Portal Utama'">
+                        </span>
+                        <span class="text-[0.65rem] text-brand-muted uppercase tracking-[0.2em] font-medium mt-0.5 truncate">Community Platform</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Links -->
+                <div class="hidden lg:flex items-center gap-8">
+                    <div class="flex items-center gap-6 bg-white/50 dark:bg-brand-base/40 px-6 py-2.5 rounded-full border border-gray-200 dark:border-white/5 backdrop-blur-md shadow-sm dark:shadow-none">
+                        <a href="index.html" class="text-sm font-medium transition-all duration-300 text-brand-accent dark:drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]">Beranda</a>
+                        <a href="about.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Profil</a>
+                        <a href="members.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Direktori</a>
+                        <a href="history.html" class="text-sm font-medium transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white">Jejak</a>
+
+                        <!-- Dropdown Menu -->
+                        <div class="relative" x-data="{ dropdown: false }">
+                            <button @mouseenter="dropdown = true" @mouseleave="dropdown = false" class="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-brand-accent dark:hover:text-white transition-colors">
+                                Layanan <i class="fas fa-angle-down text-xs transition-transform duration-300" :class="{ 'rotate-180 text-brand-accent': dropdown }"></i>
+                            </button>
+                            
+                            <div x-show="dropdown" 
+                                 @mouseenter="dropdown = true" 
+                                 @mouseleave="dropdown = false"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                                 class="absolute top-full right-0 mt-2 w-64 bg-white/95 dark:bg-brand-surface/95 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-white/10 shadow-lg dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden">
+                                
+                                <div class="p-2 flex flex-col gap-1">
+                                    <a href="jemaat.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors">
+                                        <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform"><i class="fas fa-users"></i></div>
+                                        <div><div class="text-sm font-bold text-gray-900 dark:text-white">Data Komunitas</div><div class="text-xs text-slate-500 dark:text-slate-400">Statistik anggota</div></div>
+                                    </a>
+                                    <a href="articles.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors">
+                                        <div class="w-10 h-10 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform"><i class="fas fa-book-open"></i></div>
+                                        <div><div class="text-sm font-bold text-gray-900 dark:text-white">Jurnal & Literatur</div><div class="text-xs text-slate-500 dark:text-slate-400">Bacaan inspiratif</div></div>
+                                    </a>
+                                    <a href="monitor.html" class="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 group transition-colors">
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform"><i class="fas fa-satellite-dish"></i></div>
+                                        <div><div class="text-sm font-bold text-gray-900 dark:text-white">Status Sistem</div><div class="text-xs text-slate-500 dark:text-slate-400">Monitoring real-time</div></div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle & Connect CTA -->
+                    <div class="flex items-center gap-4">
+                        <button @click="darkMode = !darkMode" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-white/20 transition-all">
+                            <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                        </button>
+                        <a href="contact.html" class="px-6 py-2.5 bg-brand-accent text-white text-sm font-bold font-display rounded-full hover:bg-brand-accent2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+                            Koneksi
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile Controls (Hamburger) -->
+                <div class="lg:hidden flex items-center gap-3 shrink-0">
+                    <button @click="open = !open" class="relative z-50 w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/10 active:scale-95 focus:outline-none transition-all duration-300">
+                        <i class="fas text-lg md:text-xl" :class="open ? 'fa-times text-brand-accent' : 'fa-bars text-gray-800 dark:text-white'" class="transition-colors"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Mobile Menu -->
+         <div x-show="open" 
+             style="display: none;"
+             x-transition:enter="transition ease-out duration-500"
+             x-transition:enter-start="opacity-0 backdrop-blur-none"
+             x-transition:enter-end="opacity-100 backdrop-blur-2xl"
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 backdrop-blur-2xl"
+             x-transition:leave-end="opacity-0 backdrop-blur-none"
+             class="fixed inset-0 z-[60] bg-white/95 dark:bg-brand-base/95 flex flex-col justify-center px-8 text-left pt-16 pb-24 overflow-y-auto">
+             
+             <button @click="open = false" class="fixed top-6 right-6 w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gray-100/80 dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 active:scale-95 transition-all duration-300 shadow-sm z-[70]">
+                 <i class="fas fa-times text-lg md:text-xl text-brand-accent"></i>
+             </button>
+
+             <div class="flex flex-col gap-5 my-auto"
+                  x-show="open"
+                  x-transition:enter="transition ease-out duration-500 delay-100"
+                  x-transition:enter-start="opacity-0 translate-y-8"
+                  x-transition:enter-end="opacity-100 translate-y-0">
+                 
+                 <a href="index.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Beranda</a>
+                 <a href="about.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Profil</a>
+                 <a href="members.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Direktori</a>
+                 <a href="history.html" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors py-2">Jejak Kami</a>
+                 
+                 <div x-data="{ sub: false }" class="py-2">
+                     <button @click="sub = !sub" class="text-2xl font-display font-bold text-slate-900 dark:text-white hover:text-brand-accent transition-colors flex items-center gap-4 w-full text-left focus:outline-none">
+                         Layanan <i class="fas fa-plus text-sm transition-transform" :class="{ 'rotate-45 text-brand-accent': sub }"></i>
+                     </button>
+                     <div x-show="sub" x-collapse class="pl-4 pt-4 flex flex-col gap-3 border-l-2 border-slate-200 dark:border-white/10 mt-2">
+                         <a href="jemaat.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Data Komunitas</a>
+                         <a href="articles.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Jurnal & Literatur</a>
+                         <a href="monitor.html" class="text-lg text-slate-600 dark:text-slate-300 hover:text-brand-accent dark:hover:text-white py-1">Status Sistem</a>
+                     </div>
+                 </div>
+
+                 <div class="mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
+                     <a href="contact.html" class="block w-full py-4 bg-brand-accent text-white text-center font-bold font-display rounded-2xl text-lg shadow-md hover:bg-brand-accent2 transition-colors">
+                         Bangun Koneksi Sekarang
+                     </a>
+                 </div>
+             </div>
+        </div>
+    </nav>
+
+    <!-- Floating Theme Toggle for Mobile -->
+    <button @click="darkMode = !darkMode" class="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-white dark:bg-brand-surface border border-gray-200 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex items-center justify-center text-gray-600 dark:text-yellow-300 active:scale-95 transition-all">
+        <i class="fas text-xl" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+    </button>
+
+    <main class="flex-grow relative z-10 pt-24" x-show="isLoaded">
+    
+        <!-- Hero Section -->
+        <div class="relative h-[80vh] md:h-[750px] w-full overflow-hidden flex items-center justify-center pt-10" 
+             x-data="{ 
+                activeSlide: 0, 
+                timer: null,
+                next() { if(this.sliders.length) this.activeSlide = (this.activeSlide + 1) % this.sliders.length },
+                prev() { if(this.sliders.length) this.activeSlide = (this.activeSlide - 1 + this.sliders.length) % this.sliders.length },
+                init() { 
+                    this.fetchSliders().then(() => {
+                        if(this.sliders.length) {
+                            this.timer = setInterval(() => this.next(), 7000);
+                        }
+                    });
+                } 
+             }">
+           
+           <!-- Slides Background Images -->
+           <template x-for="(slide, index) in sliders" :key="index">
+               <div x-show="activeSlide === index" 
+                    x-transition:enter="transition-all transform duration-[2000ms] ease-out"
+                    x-transition:enter-start="opacity-0 scale-105"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition-all transform duration-[1500ms] ease-in"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="absolute inset-0 w-full h-full z-0">
+                   
+                   <img :src="slide.image_path.startsWith('http') ? slide.image_path : '/' + slide.image_path" class="w-full h-full object-cover">
+                   <!-- Overlay Fade -->
+                   <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/70 z-10"></div>
+               </div>
+           </template>
+           
+           <!-- Premium Content Area -->
+           <div class="relative z-10 container mx-auto px-6 h-full flex items-center justify-center pt-16">
+               <template x-for="(slide, index) in sliders" :key="'content-'+index">
+                   <div x-show="activeSlide === index" 
+                        x-transition:enter="transition-all ease-out duration-1000 delay-300"
+                        x-transition:enter-start="opacity-0 translate-y-12 filter blur-sm"
+                        x-transition:enter-end="opacity-100 translate-y-0 filter blur-none"
+                        class="w-full max-w-4xl text-center">
+                       
+                       <div class="inline-block px-5 py-2 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md mb-8 border border-white/20 shadow-sm">
+                            <span class="text-sm text-violet-300 dark:text-violet-400 font-bold uppercase tracking-[0.25em] font-display hover:text-white transition-colors cursor-default" x-text="slide.subtitle || 'HIGHLIGHTS'"></span>
+                       </div>
+                       
+                       <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white font-bold mb-6 md:mb-8 leading-[1.1] font-display drop-shadow-md">
+                            <span x-text="(slide.title.split(' ')[0]) || 'Selamat'" class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-white"></span>
+                            <span x-text="slide.title.substring(slide.title.indexOf(' ') + 1) || 'Datang'"></span>
+                       </h1>
+                       
+                       <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10 md:mt-12" x-show="index === 0">
+                           <a href="contact.html" class="px-8 py-4 bg-brand-accent text-white font-bold font-display rounded-full hover:bg-violet-500 active:scale-95 md:hover:scale-105 shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:shadow-[0_0_25px_rgba(124,58,237,0.6)] transition-all duration-300 w-full sm:w-auto">
+                               Gabung Bersama Kami
+                           </a>
+                           <a href="about.html" class="px-8 py-4 bg-white/10 border border-white/30 text-white font-bold font-display rounded-full hover:bg-white/20 backdrop-blur-md active:scale-95 md:hover:scale-105 transition-all duration-300 w-full sm:w-auto">
+                               Eksplorasi Visi
+                           </a>
+                       </div>
+                   </div>
+               </template>
+           </div>
+           
+           <!-- Modern Pagination (Desktop) & Mobile Arrows -->
+           <div class="absolute bottom-4 md:bottom-12 left-0 right-0 md:left-1/2 md:transform md:-translate-x-1/2 flex justify-between md:justify-center items-center px-4 md:px-6 md:py-3 z-20 md:backdrop-blur-md md:bg-white/50 md:dark:bg-brand-base/30 md:rounded-full md:border md:border-gray-200 md:dark:border-white/10 md:shadow-sm md:dark:shadow-none md:w-auto w-full md:pointer-events-auto pointer-events-none top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0" x-show="sliders.length > 1">
+                
+                <button @click="prev()" class="pointer-events-auto w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/20 md:dark:bg-white/5 hover:bg-brand-accent hover:text-white text-gray-800 dark:text-white backdrop-blur-md transition-all md:text-xs">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="hidden md:flex items-center gap-4 mx-4">
+                    <template x-for="(slide, index) in sliders" :key="'dot-'+index">
+                        <button @click="activeSlide = index" 
+                                class="rounded-full transition-all duration-500 h-1.5"
+                                :class="activeSlide === index ? 'bg-brand-accent w-8 shadow-[0_0_10px_rgba(124,58,237,0.5)]' : 'bg-gray-400 dark:bg-white/30 hover:bg-gray-200 dark:hover:bg-white/60 w-2'"></button>
+                    </template>
+                </div>
+        
+                <button @click="next()" class="pointer-events-auto w-10 h-10 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-white/40 dark:bg-black/20 md:dark:bg-white/10 hover:bg-brand-accent hover:text-white text-gray-800 dark:text-white backdrop-blur-md transition-all md:text-xs">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+           </div>
+        </div>
+        
+        <!-- Highlights / Premium Cards -->
+        <div class="py-20 relative bg-slate-50 dark:bg-brand-base z-10 border-t border-slate-200 dark:border-white/5 transition-colors duration-500">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:-mt-32 relative z-20">
+                    
+                    <div class="bg-white dark:bg-brand-surface backdrop-blur-xl p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-md dark:shadow-xl hover:border-violet-500/30 transition-all duration-500 transform hover:-translate-y-2 group overflow-hidden relative">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all"></div>
+                        
+                        <div class="w-14 h-14 bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:scale-110 transition-transform duration-500">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-display text-slate-900 dark:text-white mb-4">Misi & Visi</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 text-sm">Menjadikan platform ini sebagai wadah pengembangan nilai moral dan ikatan sosial yang erat dalam pendekatan kontemporer.</p>
+                        <a href="about.html" class="text-violet-600 dark:text-violet-400 text-sm font-bold uppercase tracking-wider group-hover:text-violet-700 dark:group-hover:text-white inline-flex items-center gap-2 group/link">
+                            Eksplorasi Visi <i class="fas fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
+                        </a>
+                    </div>
+        
+                    <div class="bg-white dark:bg-brand-surface backdrop-blur-xl p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-md dark:shadow-xl hover:border-blue-500/30 transition-all duration-500 transform hover:-translate-y-2 group overflow-hidden relative">
+                         <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                         
+                         <div class="w-14 h-14 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:scale-110 transition-transform duration-500">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-display text-slate-900 dark:text-white mb-4">Agenda Reguler</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 text-sm">Bergabunglah dalam perkumpulan mingguan kami setiap akhir pekan untuk saling asah dan asuh.</p>
+                        <a href="jemaat.html" class="text-blue-600 dark:text-blue-400 text-sm font-bold uppercase tracking-wider group-hover:text-blue-700 dark:group-hover:text-white inline-flex items-center gap-2 group/link">
+                            Lihat Agenda <i class="fas fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
+                        </a>
+                    </div>
+        
+                    <div class="bg-white dark:bg-brand-surface backdrop-blur-xl p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-md dark:shadow-xl hover:border-indigo-500/30 transition-all duration-500 transform hover:-translate-y-2 group overflow-hidden relative"
+                         x-init="fetchPage('location')">
+                         <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
+                         
+                         <div class="w-14 h-14 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:scale-110 transition-transform duration-500">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold font-display text-slate-900 dark:text-white mb-4">Titik Koordinat</h3>
+                        <div class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 text-sm line-clamp-2" x-html="pages.location ? pages.location.content : 'Kunjungi kami di persimpangan relasi strategis untuk koneksi terbaik.'">
+                        </div>
+                        <a href="contact.html" class="text-indigo-600 dark:text-indigo-400 text-sm font-bold uppercase tracking-wider group-hover:text-indigo-700 dark:group-hover:text-white inline-flex items-center gap-2 group/link">
+                            Navigasikan Peta <i class="fas fa-arrow-right transform group-hover/link:translate-x-1 transition-transform"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Section Redesign -->
+        <div class="py-24 bg-white dark:bg-brand-surface relative z-10 overflow-hidden transition-colors duration-500" x-init="fetchPage('about')">
+            <div class="absolute top-1/2 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+            
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+                    <div class="w-full lg:w-1/2 relative group">
+                        <div class="absolute inset-0 bg-violet-500/10 rounded-3xl transform rotate-2 transition-all duration-700 group-hover:rotate-4 z-0"></div>
+                        
+                        <div class="relative z-10 rounded-3xl overflow-hidden shadow-xl">
+                            <img :src="pages.about && pages.about.image_path ? (pages.about.image_path.startsWith('http') ? pages.about.image_path : '/' + pages.about.image_path) : 'https://images.unsplash.com/photo-1577412647305-991150c7d163?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'" class="w-full h-[400px] md:h-[600px] object-cover transition-transform duration-700 group-hover:scale-105">
+                        </div>
+        
+                        <div class="absolute -bottom-6 -left-6 bg-white dark:bg-brand-surface backdrop-blur-xl border border-slate-100 dark:border-white/5 p-6 rounded-2xl shadow-xl z-20 hidden md:block">
+                             <div class="flex items-center gap-4">
+                                 <div class="w-14 h-14 rounded-full bg-violet-50 dark:bg-violet-500/10 flex flex-col items-center justify-center text-violet-600 dark:text-violet-400">
+                                     <span class="text-xl font-bold font-display" x-text="serviceYears + '+'">0+</span>
+                                 </div>
+                                 <div>
+                                     <p class="text-slate-900 dark:text-white font-bold font-display mb-1">Tahun<br>Dedikasi</p>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full lg:w-1/2">
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="w-10 h-px bg-violet-500"></span>
+                            <span class="text-violet-600 dark:text-violet-400 font-bold uppercase tracking-widest text-xs">Jati Diri & Fondasi</span>
+                        </div>
+                        <h2 class="text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-6 font-display leading-tight">
+                            Memperkuat <span class="text-violet-600 dark:text-violet-400">Ikatan,</span><br>Menyatukan <span class="text-blue-600 dark:text-blue-400">Potensi</span>
+                        </h2>
+                        <div class="text-slate-600 dark:text-slate-400 mb-10 leading-relaxed text-lg">
+                             <div x-html="pages.about ? (pages.about.content.replace(/(<([^>]+)>)/gi, '').substring(0, 350) + '...') : 'Memuat konten...'"></div>
+                             <br>
+                             Sinergi dan keharmonisan adalah pilar utama yang mendukung ketahanan komunitas. Sistem terintegrasi ini dirancang merepresentasikan visi tersebut di era industri modern.
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                            <a href="about.html" class="px-8 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold font-display rounded-full hover:bg-brand-accent transition-colors inline-flex items-center gap-3">
+                                Baca Cerita Kami <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dynamic Map / Location Section -->
+        <div class="py-24 bg-slate-50 dark:bg-brand-base relative z-10 border-t border-slate-200 dark:border-white/5 transition-colors duration-500">
+            <div class="max-w-7xl mx-auto px-6 relative z-10">
+                <div class="text-center mb-16 max-w-2xl mx-auto">
+                    <span class="text-violet-600 dark:text-violet-400 font-bold uppercase tracking-widest text-xs mb-3 block">Akses Geografis</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white font-display mb-4">Temukan Pusat Pertemuan Kami</h2>
+                    <p class="text-slate-600 dark:text-slate-400">Jalur relasi terus dibentangkan. Segera integrasikan rute navigasi menuju pusat interaksi sosial kami.</p>
+                </div>
+        
+                <div class="flex flex-col lg:flex-row gap-6 items-stretch bg-white dark:bg-brand-surface rounded-3xl p-3 border border-slate-200 dark:border-white/5 shadow-sm">
+                    <div class="w-full lg:w-1/3 bg-slate-50 dark:bg-white/5 rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-xl flex items-center justify-center text-xl mb-6">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900 dark:text-white font-display mb-3">Pusat Integrasi</h3>
+                            <div class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 text-sm" x-html="pages.location ? pages.location.content : 'Titik sentral pertemuan fisik kawasan strategis yang difasilitasi dengan baik.'">
+                            </div>
+                        </div>
+                        
+                        <div class="relative z-10 space-y-3">
+                            <a :href="settings.social_whatsapp || 'https://wa.me/6281234567890'" target="_blank" class="w-full flex items-center justify-between px-5 py-3.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-100 hover:border-emerald-200 dark:hover:bg-emerald-500/20 transition-colors group">
+                                <span class="flex items-center gap-3"><i class="fab fa-whatsapp text-lg"></i> Konsultasi Chat</span>
+                                <i class="fas fa-arrow-right transform -rotate-45 group-hover:rotate-0 transition-transform"></i>
+                            </a>
+                            <a :href="settings.google_maps_link || '#'" target="_blank" class="w-full flex items-center justify-between px-5 py-3.5 bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20 text-violet-700 dark:text-violet-400 rounded-xl text-sm font-semibold hover:bg-violet-100 hover:border-violet-200 dark:hover:bg-violet-500/20 transition-colors group">
+                                <span class="flex items-center gap-3"><i class="fas fa-route text-lg"></i> Mulai Navigasi</span>
+                                <i class="fas fa-arrow-right transform -rotate-45 group-hover:rotate-0 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+        
+                    <div class="w-full lg:w-2/3 relative rounded-2xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                        <div class="w-full h-[400px] md:h-[600px] relative z-0 map-container">
+                            <template x-if="settings.google_maps_embed">
+                                <div x-html="settings.google_maps_embed" style="width:100%;height:100%"></div>
+                            </template>
+                            <template x-if="!settings.google_maps_embed">
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.3359677322306!2d104.03517937400585!3d1.0597323989299616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zKcKwMDMnMzUuMCJOIDEwNMKwMDInMDYuNyJF!5e0!3m2!1sid!2sid!4v1703673738000!5m2!1sid!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Premium Footer Overlay -->
+    <footer class="relative mt-24 border-t border-slate-200 dark:border-white/5 bg-slate-200/50 dark:bg-brand-surface/40 overflow-hidden transition-colors duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)]" x-show="isLoaded">
+        <!-- Footer Ambient -->
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-violet-600/10 dark:bg-violet-600/5 blur-[100px] rounded-full"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 dark:bg-blue-600/5 blur-[80px] rounded-full"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 py-16 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 border-b border-slate-200 dark:border-white/5 pb-12">
+                <!-- Brand Info -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="flex items-center gap-4">
+                        <template x-if="getLogoUrl()">
+                            <div class="h-12 overflow-hidden shadow-lg shadow-sky-500/10">
+                                <img :src="getLogoUrl()" alt="Logo" class="w-auto h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
+                            </div>
+                        </template>
+                        <template x-if="!getLogoUrl()">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-accent to-brand-accent2 flex items-center justify-center shadow-lg shadow-brand-accent/20">
+                                <i class="fas fa-globe text-white text-xl"></i>
+                            </div>
+                        </template>
+                        <div class="flex flex-col">
+                            <h3 class="font-display text-slate-900 dark:text-white text-2xl font-bold tracking-tight" x-text="settings.site_title || 'Portal Utama'"></h3>
+                            <span class="text-xs text-sky-600 dark:text-sky-400 tracking-[0.2em] font-medium uppercase">Community Network</span>
+                        </div>
+                    </div>
+                    <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400 pe-4" x-text="settings.site_description || 'Membangun sinergi dan keharmonisan bersama komunitas kami dalam era digital modern, terikat dalam satu visi kebersamaan.'">
+                    </p>
+                    <div class="flex space-x-3 pt-2">
+                        <template x-if="settings.social_facebook">
+                            <a :href="settings.social_facebook" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#1877F2] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                        </template>
+                        <template x-if="settings.social_youtube">
+                            <a :href="settings.social_youtube" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#FF0000] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                        </template>
+                        <template x-if="settings.social_instagram">
+                            <a :href="settings.social_instagram" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#E4405F] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </template>
+                        <template x-if="settings.social_whatsapp">
+                            <a :href="settings.social_whatsapp" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#25D366] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </template>
+                        <template x-if="settings.social_github">
+                            <a :href="settings.social_github" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200/50 dark:bg-white/5 border border-slate-300/50 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-[#333] dark:hover:text-[#fff] hover:bg-slate-300/50 dark:hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Explorations -->
+                <div class="lg:col-span-2 lg:col-start-6">
+                    <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2">
+                        <i class="fas fa-compass text-sky-600 dark:text-sky-400 text-sm"></i> Eksplorasi
+                    </h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="about.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Tentang Ekosistem</a></li>
+                        <li><a href="jemaat.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Jadwal & Agenda</a></li>
+                        <li><a href="members.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Direktori Member</a></li>
+                    </ul>
+                </div>
+
+                <!-- Hub -->
+                <div class="lg:col-span-2">
+                    <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2">
+                        <i class="fas fa-layer-group text-sky-600 dark:text-sky-400 text-sm"></i> Fasilitas Publik
+                    </h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="articles.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Publikasi Konten</a></li>
+                        <li><a href="history.html" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 py-1"><i class="fas fa-angle-right text-[10px] opacity-50"></i> Riwayat Evolusi</a></li>
+                        <li><a href="https://advent.qzz.io/admin/login" target="_blank" class="text-slate-600 dark:text-slate-400 hover:text-brand-accent transition-colors flex items-center gap-2 group py-1"><i class="fas fa-shield-alt text-[10px] opacity-50 group-hover:text-brand-accent transition-colors"></i> Portal Akses</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Widget -->
+                <div class="lg:col-span-3 lg:col-start-10">
+                     <h4 class="text-slate-900 dark:text-white font-display font-semibold mb-6 flex items-center gap-2">
+                        <i class="fas fa-map-pin text-sky-600 dark:text-sky-400 text-sm"></i> Pusat Informasi
+                     </h4>
+                     <div class="bg-white dark:bg-brand-surface border border-slate-200 dark:border-white/5 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group transition-colors">
+                         <div class="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 dark:bg-sky-500/5 rounded-bl-[100px] transition-all duration-500 group-hover:scale-150 group-hover:bg-sky-500/20 dark:group-hover:bg-sky-500/10"></div>
+                         
+                         <div class="flex gap-4 relative z-10">
+                             <div class="text-sky-600 dark:text-sky-400 mt-1"><i class="fas fa-building"></i></div>
+                             <div class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium" x-html="pages.location ? pages.location.content : 'Pusat Koordinasi Wilayah, Indonesia.'">
+                             </div>
+                         </div>
+                         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 relative z-10">
+                             <a href="contact.html" class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest hover:text-brand-accent dark:hover:text-white transition-colors flex items-center gap-2 group/link">
+                                 Jalin Komunikasi <i class="fas fa-arrow-right transform group-hover/link:translate-x-2 transition-transform"></i>
+                             </a>
+                         </div>
+                     </div>
+                </div>
+            </div>
+            
+            <div class="pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 dark:text-brand-muted font-medium gap-4">
+                <p class="text-center md:text-left">&copy; <span x-text="new Date().getFullYear()"></span> <span class="text-gray-800 dark:text-gray-300" x-text="settings.site_title || 'Platform Terpadu'"></span>. Semua hak cipta dilindungi.</p>
+                <div class="flex flex-wrap justify-center space-x-4 md:space-x-6 mt-2 md:mt-0">
+                    <a href="privacy.html" class="hover:text-brand-accent transition-colors p-1">Kebijakan Privasi</a>
+                    <a href="terms.html" class="hover:text-brand-accent transition-colors p-1">Syarat Penggunaan</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <style>
+        .map-container iframe { width: 100% !important; height: 100% !important; position: absolute; top: 0; left: 0; }
+    </style>
+</body>
+</html>
+
+
+
