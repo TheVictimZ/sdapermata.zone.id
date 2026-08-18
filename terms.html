@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id" x-data="appData" :class="{ 'dark': darkMode }" x-init="$watch('darkMode', val => localStorage.setItem('theme', val ? 'dark' : 'light'))">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Syarat & Ketentuan Penggunaan Portal GMAHK Permata Punggur." :content="settings.site_description || 'Syarat & Ketentuan Penggunaan.'">
+    <title x-text="(settings.site_title ? 'Syarat & Ketentuan - ' + settings.site_title : 'Syarat & Ketentuan - {{PAGE_TITLE}}')">Syarat & Ketentuan - {{PAGE_TITLE}}</title>
+    
+    <link rel="icon" type="image/png" id="favicon" href=""> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        display: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554',
+                            accent: '#0ea5e9',
+                            gold: '#f59e0b',
+                            base: '#090d16',
+                            cardDark: '#111827',
+                            lightBg: '#f8fafc',
+                        },
+                        // Legacy aliases for backward compatibility
+                        'brand-base': '#090d16',
+                        'brand-surface': '#111827',
+                        'brand-surface-lighter': '#1e293b',
+                        'brand-primary': '#2563eb',
+                        'brand-accent': '#3b82f6',
+                        'brand-cyan': '#0ea5e9',
+                        'brand-gold': '#f59e0b',
+                        'brand-lightBg': '#f8fafc',
+                    },
+                    animation: {
+                        'blob': 'blob 12s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -40px) scale(1.08)' },
+                            '66%': { transform: 'translate(-25px, 20px) scale(0.95)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+                        'glass-dark': '0 12px 40px 0 rgba(0, 0, 0, 0.45)',
+                        'glow': '0 0 25px -5px rgba(37, 99, 235, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/css/style.css?v=1.1.2" rel="stylesheet">
+    <style>
+        .prose [style*="text-align:center"], .prose [style*="text-align: center"], .prose [align="center"], div[style*="text-align:center"], p[style*="text-align:center"], p[style*="text-align: center"] { text-align: center !important; }
+        .prose [style*="text-align:center"] img, .prose [style*="text-align: center"] img, .prose [align="center"] img, .prose img[style*="text-align:center"], .prose img[style*="text-align: center"], div[style*="text-align:center"] img, p[style*="text-align:center"] img, p[style*="text-align: center"] img, .prose img.mx-auto { display: block !important; margin-left: auto !important; margin-right: auto !important; float: none !important; }
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="assets/js/api.js?v=20260818190254"></script>
+
+    <link rel="canonical" href="https://sdapermata.zone.id/terms.html">
+    <meta property="og:url" content="https://sdapermata.zone.id/terms.html">
+    <meta property="og:title" content="Syarat & Ketentuan | {{OG_TITLE}}">
+</head>
+<body class="bg-brand-lightBg text-slate-900 dark:bg-brand-base dark:text-slate-100 font-sans antialiased flex flex-col min-h-screen selection:bg-brand-primary selection:text-white overflow-x-hidden transition-colors duration-400">
+
+    <div x-show="darkMode" class="fixed inset-0 z-0 pointer-events-none overflow-hidden block transition-opacity duration-500 select-none">
+        <div class="absolute -top-[15%] -left-[10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[130px]"></div>
+    </div>
+
+    <!-- Floating Glass Navbar -->
+        <!-- Modern Floating Transparent / Glass Navbar -->
+    <nav class="fixed top-0 w-full z-50 px-3 sm:px-6 py-3 md:py-4 transition-all duration-400" 
+         x-data="{ open: false, scrolled: false }" 
+         @scroll.window="scrolled = (window.pageYOffset > 20)">
+        
+        <div class="max-w-7xl mx-auto transition-all duration-400"
+             :class="scrolled ? 'rounded-2xl sm:rounded-full bg-white/90 dark:bg-slate-900/85 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-lg dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] py-2.5 px-4 sm:px-6' : 'rounded-2xl bg-transparent border-transparent py-3 px-3 sm:px-5'">
+            
+            <div class="flex justify-between items-center gap-3 md:gap-6">
+                <!-- Brand Logo & Name -->
+                <a href="index.html" class="flex items-center gap-3 md:gap-4 group z-50 min-w-0 flex-1 max-w-[80%] lg:max-w-max">
+                    <template x-if="getLogoUrl()">
+                        <div class="h-10 md:h-11 shrink-0 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img :src="getLogoUrl()" alt="Logo" class="w-auto h-full object-contain filter drop-shadow-sm dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.15)]">
+                        </div>
+                    </template>
+                    <template x-if="!getLogoUrl()">
+                        <div class="w-10 h-10 md:w-11 md:h-11 shrink-0 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-accent flex items-center justify-center shadow-md shadow-brand-600/30 text-white group-hover:rotate-6 transition-transform duration-300">
+                            <i class="fas fa-church text-lg md:text-xl"></i>
+                        </div>
+                    </template>
+                    
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-display font-bold text-base md:text-lg lg:text-xl tracking-tight transition-colors duration-300 leading-tight truncate"
+                              :class="scrolled ? 'text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400' : 'text-white drop-shadow-md group-hover:text-sky-300'"
+                              x-text="settings.site_title || 'GMAHK Permata Punggur'">
+                            GMAHK Permata Punggur
+                        </span>
+                        <span class="text-[0.65rem] md:text-[0.7rem] font-semibold uppercase tracking-[0.15em] truncate flex items-center gap-1.5 mt-0.5"
+                              :class="scrolled ? 'text-slate-500 dark:text-slate-400' : 'text-slate-200 drop-shadow-sm'">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Community Platform
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Menu -->
+                <div class="hidden lg:flex items-center gap-6">
+                    <div class="flex items-center gap-2 p-1.5 rounded-full border transition-all duration-300 backdrop-blur-md"
+                         :class="scrolled ? 'bg-slate-100/80 dark:bg-slate-800/60 border-slate-200/60 dark:border-white/5' : 'bg-black/20 dark:bg-black/40 border-white/20 text-white shadow-lg'">
+                        
+                        <a href="index.html" class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5"
+                           :class="window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm font-extrabold' : (scrolled ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50' : 'text-white/90 hover:text-white hover:bg-white/20')">
+                            <i class="fas fa-home text-[11px] opacity-70"></i> Beranda
+                        </a>
+                        <a href="about.html" class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5"
+                           :class="window.location.pathname.endsWith('about.html') ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm font-extrabold' : (scrolled ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50' : 'text-white/90 hover:text-white hover:bg-white/20')">
+                            <i class="fas fa-info-circle text-[11px] opacity-70"></i> Profil
+                        </a>
+                        <a href="members.html" class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5"
+                           :class="window.location.pathname.endsWith('members.html') ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm font-extrabold' : (scrolled ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50' : 'text-white/90 hover:text-white hover:bg-white/20')">
+                            <i class="fas fa-users text-[11px] opacity-70"></i> Members
+                        </a>
+                        <a href="history.html" class="text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all duration-300 flex items-center gap-1.5"
+                           :class="window.location.pathname.endsWith('history.html') ? 'bg-white dark:bg-brand-600 text-brand-600 dark:text-white shadow-sm font-extrabold' : (scrolled ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50' : 'text-white/90 hover:text-white hover:bg-white/20')">
+                            <i class="fas fa-landmark text-[11px] opacity-70"></i> Jejak & Sejarah
+                        </a>
+
+                        <!-- Dropdown Menu "Layanan" -->
+                        <div class="relative" x-data="{ dropdown: false }">
+                            <button @mouseenter="dropdown = true" 
+                                    @mouseleave="dropdown = false" 
+                                    @click="dropdown = !dropdown" 
+                                    class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all"
+                                    :class="scrolled ? 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50' : 'text-white/90 hover:text-white hover:bg-white/20'">
+                                <i class="fas fa-th-large text-[11px] opacity-70"></i>
+                                <span>Layanan</span>
+                                <i class="fas fa-chevron-down text-[9px] transition-transform duration-300 ml-0.5" :class="{ 'rotate-180 text-brand-600 dark:text-brand-400': dropdown }"></i>
+                            </button>
+                            
+                            <div x-show="dropdown" 
+                                 @mouseenter="dropdown = true" 
+                                 @mouseleave="dropdown = false"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                                 class="absolute top-full right-0 mt-3 w-72 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl dark:shadow-[0_15px_40px_rgba(0,0,0,0.6)] overflow-hidden z-50 p-2">
+                                
+                                <div class="flex flex-col gap-1">
+                                    <a href="jemaat.html" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 group transition-all">
+                                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-brand-600 dark:text-blue-400 group-hover:scale-110 group-hover:bg-brand-600 group-hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">Jadwal & Agenda</div>
+                                            <div class="text-xs text-slate-500 dark:text-slate-400">Jadwal Ibadah & Kegiatan</div>
+                                        </div>
+                                    </a>
+
+                                    <a href="articles.html" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 group transition-all">
+                                        <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 group-hover:scale-110 group-hover:bg-sky-600 group-hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-newspaper"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Warta & Berita</div>
+                                            <div class="text-xs text-slate-500 dark:text-slate-400">Artikel & Publikasi Terkini</div>
+                                        </div>
+                                    </a>
+
+                                    <a href="monitor.html" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 group transition-all">
+                                        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-satellite-dish"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Status Jaringan</div>
+                                            <div class="text-xs text-slate-500 dark:text-slate-400">Live Server Telemetry</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle & Action CTA -->
+                    <div class="flex items-center gap-3">
+                        <button @click="darkMode = !darkMode" 
+                                title="Ubah Tema Tampilan" 
+                                class="w-10 h-10 rounded-full border flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                                :class="scrolled ? 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-700 dark:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700' : 'bg-black/20 dark:bg-black/40 border-white/20 text-white hover:bg-white/20 backdrop-blur-md'">
+                            <i class="fas text-sm" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                        </button>
+                        
+                        <a href="contact.html" 
+                           class="px-5 py-2.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white text-xs font-bold font-display uppercase tracking-wider rounded-full hover:from-brand-500 hover:to-brand-600 shadow-md hover:shadow-brand-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center gap-2">
+                            <span>Hubungi Kami</span>
+                            <i class="fas fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile Header Controls -->
+                <div class="lg:hidden flex items-center gap-2 shrink-0">
+                    <button @click="darkMode = !darkMode" 
+                            class="w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 transition-all"
+                            :class="scrolled ? 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-700 dark:text-amber-300' : 'bg-black/20 border-white/20 text-white backdrop-blur-md'">
+                        <i class="fas text-sm" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                    </button>
+                    
+                    <button @click="open = !open" 
+                            aria-label="Menu Navigasi"
+                            class="w-10 h-10 rounded-xl border flex items-center justify-center active:scale-95 transition-all"
+                            :class="scrolled ? 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white' : 'bg-black/20 border-white/20 text-white backdrop-blur-md'">
+                        <i class="fas text-base" :class="open ? 'fa-times text-brand-600' : 'fa-bars'"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Mobile Navigation Drawer -->
+        <div x-show="open" 
+             style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-[-10px]"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-[-10px]"
+             class="fixed inset-0 z-[60] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl flex flex-col justify-start px-6 pt-24 pb-12 overflow-y-auto lg:hidden">
+             
+             <!-- Close Drawer Button -->
+             <button @click="open = false" class="fixed top-5 right-5 w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-800 dark:text-white active:scale-95 transition-all shadow-md z-[70]">
+                 <i class="fas fa-times text-lg text-brand-600 dark:text-brand-400"></i>
+             </button>
+
+             <div class="flex flex-col gap-3 my-auto max-w-sm mx-auto w-full">
+                 <div class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">Menu Utama</div>
+                 
+                 <a href="index.html" @click="open = false" class="flex items-center gap-3.5 text-lg font-display font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                     <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-brand-600 dark:text-blue-400 text-sm"><i class="fas fa-home"></i></div>
+                     <span>Beranda</span>
+                 </a>
+
+                 <a href="about.html" @click="open = false" class="flex items-center gap-3.5 text-lg font-display font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                     <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm"><i class="fas fa-info-circle"></i></div>
+                     <span>Profil Komunitas</span>
+                 </a>
+
+                 <a href="members.html" @click="open = false" class="flex items-center gap-3.5 text-lg font-display font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                     <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 text-sm"><i class="fas fa-users"></i></div>
+                     <span>Members</span>
+                 </a>
+
+                 <a href="history.html" @click="open = false" class="flex items-center gap-3.5 text-lg font-display font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
+                     <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 text-sm"><i class="fas fa-landmark"></i></div>
+                     <span>Jejak & Sejarah</span>
+                 </a>
+                 
+                 <!-- Submenu Layanan -->
+                 <div x-data="{ subOpen: true }" class="border-t border-slate-200/80 dark:border-white/10 pt-3 mt-2">
+                     <button @click="subOpen = !subOpen" class="flex items-center justify-between w-full p-3 text-lg font-display font-bold text-slate-900 dark:text-white hover:text-brand-600 transition-colors">
+                         <span class="flex items-center gap-3.5">
+                             <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center text-sky-600 dark:text-sky-400 text-sm"><i class="fas fa-th-large"></i></div>
+                             <span>Layanan & Warta</span>
+                         </span>
+                         <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180 text-brand-600': subOpen }"></i>
+                     </button>
+                     
+                     <div x-show="subOpen" class="flex flex-col gap-1 pl-12 pr-2 py-1">
+                         <a href="jemaat.html" @click="open = false" class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-white py-2 flex items-center gap-2">
+                             <i class="fas fa-calendar-alt text-xs text-brand-600 dark:text-sky-400"></i>
+                             <span>Jadwal & Agenda</span>
+                         </a>
+                         <a href="articles.html" @click="open = false" class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-white py-2 flex items-center gap-2">
+                             <i class="fas fa-newspaper text-xs text-sky-600 dark:text-sky-400"></i>
+                             <span>Warta & Berita</span>
+                         </a>
+                         <a href="monitor.html" @click="open = false" class="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-white py-2 flex items-center gap-2">
+                             <i class="fas fa-satellite-dish text-xs text-emerald-600 dark:text-emerald-400"></i>
+                             <span>Status Jaringan</span>
+                         </a>
+                     </div>
+                 </div>
+
+                 <div class="pt-4 mt-2">
+                     <a href="contact.html" @click="open = false" class="w-full py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 text-white font-display font-bold text-sm uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-brand-600/30">
+                         <i class="fas fa-paper-plane text-xs"></i>
+                         <span>Hubungi Kami</span>
+                     </a>
+                 </div>
+             </div>
+        </div>
+    </nav>
+
+    <!-- Page Header Banner -->
+    <header class="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-gradient-to-b from-slate-900 via-slate-900 to-brand-base text-white text-center -mt-20 md:-mt-24 overflow-hidden">
+        <div class="relative z-10 max-w-4xl mx-auto px-4">
+            <h1 class="text-4xl sm:text-5xl font-display font-extrabold text-white tracking-tight mb-4">
+                Syarat & Ketentuan
+            </h1>
+            <p class="text-base text-slate-300 max-w-2xl mx-auto font-light">
+                Panduan dan ketentuan penggunaan portal informasi GMAHK Permata Punggur.
+            </p>
+        </div>
+    </header>
+
+    <main class="py-16 md:py-24 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-12 border border-slate-200/80 dark:border-white/10 shadow-xl prose prose-slate dark:prose-invert max-w-none">
+                <h2>1. Ketentuan Umum</h2>
+                <p>Seluruh materi publikasi, warta, artikel, dan jadwal ibadah pada situs ini disediakan untuk kepentingan pelayanan rohani dan informasi jemaat.</p>
+                
+                <h2>2. Hak Cipta & Penggunaan Konten</h2>
+                <p>Materi renungan, artikel, dan foto kegiatan dilindungi oleh hak cipta komunitas dan tidak diperkenankan untuk disalahgunakan demi kepentingan komersial tanpa izin tertulis.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Multi-Column Footer -->
+    <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 font-light relative z-20 pt-16 pb-12 transition-colors duration-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="pt-8 border-t border-slate-200/80 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                <p>&copy; <span x-text="new Date().getFullYear()"></span> <span class="font-bold text-slate-800 dark:text-slate-200" x-text="settings.site_title || 'GMAHK Permata Punggur'"></span>. All rights reserved.</p>
+                <button @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="flex items-center gap-2 text-slate-500 hover:text-brand-primary transition-colors"><span>Kembali ke Atas</span><i class="fas fa-arrow-up text-[10px]"></i></button>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+
+
+
+
+
